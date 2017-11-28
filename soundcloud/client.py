@@ -44,6 +44,8 @@ class Client(object):
             self._credentials_flow()
         elif self._options_for_token_refresh_present():
             self._refresh_token_flow()
+        elif self._options_for_client_credentials_flow_present():
+            self._client_credentials_flow()
 
     def exchange_token(self, code):
         """Given the value of the code parameter, request an access token."""
@@ -115,6 +117,22 @@ class Client(object):
             make_request('post', url, options))
         self.access_token = self.token.access_token
 
+    def _client_credentials_flow(self):
+        """Given a client ID and secret, obtain an access token."""
+        url = '%s%s/oauth2/token' % (self.scheme, self.host)
+        options = {
+            'client_id': self.options.get('client_id'),
+            'client_secret': self.options.get('client_secret'),
+            'scope': getattr(self, 'scope', ''),
+            'grant_type': 'client_credentials'
+        }
+        options.update({
+            'verify_ssl': self.options.get('verify_ssl', True),
+            'proxies': self.options.get('proxies', None)
+        })
+        self.token = wrapped_resource(make_request('post', url, options))
+        self.access_token = self.token.access_token
+
     def _request(self, method, resource, **kwargs):
         """Given an HTTP method, a resource name and kwargs, construct a
         request and return the response.
@@ -170,4 +188,8 @@ class Client(object):
 
     def _options_for_token_refresh_present(self):
         required = ('client_id', 'client_secret', 'refresh_token')
+        return self._options_present(required, self.options)
+
+    def _options_for_client_credentials_flow_present(self):
+        required = ('client_id', 'client_secret')
         return self._options_present(required, self.options)
