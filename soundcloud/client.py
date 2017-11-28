@@ -13,6 +13,8 @@ class Client(object):
 
     use_ssl = True
     host = 'api.soundcloud.com'
+    TOKEN_BASE_URL = '%s%s/oauth2/token'
+    AUTHORIZE_BASE_URL = '%s%s/connect'
 
     def __init__(self, **kwargs):
         """Create a client instance with the provided options. Options should
@@ -47,7 +49,7 @@ class Client(object):
 
     def exchange_token(self, code):
         """Given the value of the code parameter, request an access token."""
-        url = '%s%s/oauth2/token' % (self.scheme, self.host)
+        url = self.TOKEN_BASE_URL % (self.scheme, self.host)
         options = {
             'grant_type': 'authorization_code',
             'redirect_uri': self._redirect_uri(),
@@ -76,12 +78,12 @@ class Client(object):
             'response_type': 'code',
             'redirect_uri': self._redirect_uri()
         }
-        url = '%s%s/connect' % (self.scheme, self.host)
+        url = self.AUTHORIZE_BASE_URL % (self.scheme, self.host)
         self._authorize_url = '%s?%s' % (url, urlencode(options))
 
     def _refresh_token_flow(self):
         """Given a refresh token, obtain a new access token."""
-        url = '%s%s/oauth2/token' % (self.scheme, self.host)
+        url = self.TOKEN_BASE_URL % (self.scheme, self.host)
         options = {
             'grant_type': 'refresh_token',
             'client_id': self.options.get('client_id'),
@@ -98,7 +100,7 @@ class Client(object):
 
     def _credentials_flow(self):
         """Given a username and password, obtain an access token."""
-        url = '%s%s/oauth2/token' % (self.scheme, self.host)
+        url = self.TOKEN_BASE_URL % (self.scheme, self.host)
         options = {
             'client_id': self.options.get('client_id'),
             'client_secret': self.options.get('client_secret'),
